@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <div class="mermaid">
+        classDiagram
+        %% Model Classes
+        class User {
+        +id: bigint
+        +name: varchar(100)
+        +email: varchar
+        +balance: decimal(15,2)
+        +role: enum('seller','admin')
+        +last_active_at: timestamp
+        +store() Store
+        +transactions() Transaction[]
+        +withdrawals() Withdrawal[]
+        }
+
+        class Store {
+        +id: bigint
+        +user_id: bigint
+        +name: varchar(100)
+        +image_url: varchar(255)
+        +is_open: boolean
+        +no_stand: smallint
+        +menus() Menu[]
+        +orders() Order[]
+        +ratings() Rating[]
+        +getStatusAttribute() string
+        +getButtonClassAttribute() string
+        }
+
+        class Menu {
+        +id: bigint
+        +store_id: bigint
+        +name: varchar(100)
+        +description: text
+        +composition: text
+        +price: integer unsigned
+        +image_url: varchar(255)
+        +stock_status: enum('available','out of stock')
+        +store() Store
+        +scopeAvailable() QueryBuilder
+        }
+
+        class Order {
+        +id: bigint
+        +store_id: bigint
+        +temporary_user_id: varchar
+        +email: varchar
+        +total: decimal(10,2)
+        +status: enum
+        +snap_token: varchar
+        +order_type: varchar
+        +items() OrderItem[]
+        +store() Store
+        +rating() Rating
+        +transaction() Transaction
+        }
+
+        class OrderItem {
+        +id: bigint
+        +order_id: bigint
+        +name: varchar
+        +price: decimal(10,2)
+        +quantity: integer
+        +note: text
+        +order() Order
+        }
+
+        class Rating {
+        +id: bigint
+        +order_id: bigint
+        +rating: integer unsigned
+        +review: text
+        +order() Order
+        }
+
+        class Transaction {
+        +id: bigint
+        +user_id: bigint
+        +order_id: bigint
+        +amount: decimal(15,2)
+        +type: enum('topup','withdraw')
+        +status: enum('pending','approved','rejected')
+        +user() User
+        +order() Order
+        +withdrawal() Withdrawal
+        +scopeTopups() QueryBuilder
+        +scopeWithdrawals() QueryBuilder
+        +getFormattedAmountAttribute() string
+        }
+
+        class Withdrawal {
+        +id: bigint
+        +user_id: bigint
+        +transaction_id: bigint
+        +bank_name: varchar
+        +account_number: varchar
+        +account_holder: varchar
+        +status: enum('pending','approved','rejected')
+        +amount: numeric
+        +user() User
+        +transaction() Transaction
+        }
+
+        %% Component Classes
+        class MenuPage {
+        +stores: Collection
+        +menus: Collection
+        +selectedStore: int
+        +mount()
+        +selectStore()
+        +loadMenus()
+        +render()
+        }
+
+        class MenuItem {
+        +menu: Menu
+        +quantity: int
+        +note: string
+        +showMenu()
+        +addToCart()
+        +incrementQuantity()
+        +render()
+        }
+
+        class CartButton {
+        +itemCount: int
+        +totalPrice: float
+        +loadCart()
+        +updateCart()
+        +redirectToCheckout()
+        +render()
+        }
+
+        class Checkout {
+        +cart: array
+        +total: float
+        +processCheckout()
+        +increaseQuantity()
+        +render()
+        }
+
+        class HomePage {
+        +orderHistory: Collection
+        +mount()
+        +showOrdersModal()
+        +render()
+        }
+
+        class OrderDetail {
+        +order: Order
+        +refreshOrder()
+        +render()
+        }
+
+        class RatingForm {
+        +order_id: int
+        +rating: int
+        +submit()
+        +render()
+        }
+
+        class CustomerOrder {
+        +orders: Collection
+        +refreshOrders()
+        +setTab()
+        +render()
+        }
+
+        class CustomerOrderDetail {
+        +order: Order
+        +updateStatus()
+        +sendStatusNotification()
+        +render()
+        }
+
+        class Home {
+        +store: Store
+        +toggleStoreStatus()
+        +render()
+        }
+
+        class MenuCreate {
+        +name: string
+        +price: numeric
+        +save()
+        +render()
+        }
+
+        class MenuList {
+        +menus: Collection
+        +deleteMenu()
+        +toggleStock()
+        +render()
+        }
+
+        class StoreProfile {
+        +store: Store
+        +updateStore()
+        +logout()
+        +render()
+        }
+
+        class Wallet {
+        +balance: decimal
+        +transactions: Collection
+        +refresh()
+        +withdraw()
+        +render()
+        }
+
+        class ReviewPage {
+        +store: Store
+        +ratings: Collection
+        +averageRating: float
+        +mount(storeId)
+        +render()
+        }
+
+        class SearchMenu {
+        +query: string
+        +results: Collection
+        +updatedQuery()
+        +clearSearch()
+        +showMenuModal(menuId)
+        +render()
+        }
+
+        class MenuUpdate {
+        +menuId: integer
+        +name: string
+        +price: numeric
+        +mount(menuId)
+        +update()
+        +render()
+        }
+
+        class StoreReviews {
+        +store: Store
+        +ratings: Collection
+        +mount(store)
+        +render()
+        }
+
+        class WithdrawBalance {
+        +bank_name: string
+        +account_number: numeric
+        +amount: numeric
+        +submit()
+        +render()
+        }
+
+        class WithdrawalDetail {
+        +withdrawal: Withdrawal
+        +mount(withdrawalId)
+        +render()
+        }
+
+        %% Relationships
+        User "1" -- "1" Store : hasOne
+        Store "1" -- "*" Menu : hasMany
+        Store "1" -- "*" Order : hasMany
+        Store "1" -- "*" Rating : hasMany
+        Order "1" -- "*" OrderItem : hasMany
+        Order "1" -- "1" Rating : hasOne
+        Order "1" -- "1" Transaction : hasOne
+        User "1" -- "*" Transaction : hasMany
+        Transaction "1" -- "1" Withdrawal : hasOne
+        User "1" -- "*" Withdrawal : hasMany
+
+        MenuPage --> Menu : uses
+        MenuPage --> Store : uses
+        MenuItem --> Menu : uses
+        CartButton --> Order : uses
+        Checkout --> Order : creates
+        CustomerOrder --> Order : manages
+        CustomerOrderDetail --> Order : manages
+        Home --> Store : manages
+        MenuCreate --> Menu : creates
+        MenuList --> Menu : manages
+        StoreProfile --> Store : manages
+        Wallet --> User : manages
+        ReviewPage --> Store : uses
+        ReviewPage --> Rating : uses
+        SearchMenu --> Menu : searches
+        MenuUpdate --> Menu : updates
+        StoreReviews --> Store : uses
+        StoreReviews --> Rating : uses
+        WithdrawBalance --> Withdrawal : creates
+        WithdrawalDetail --> Withdrawal : shows
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({ startOnLoad: true });</script>
+</body>
+
+</html>
