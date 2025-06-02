@@ -271,6 +271,9 @@
         Transaction "1" -- "1" Withdrawal : hasOne
         User "1" -- "*" Withdrawal : hasMany
 
+        HomePage --> Order : uses
+        OrderDetail --> Order : shows
+        RatingForm --> Rating : creates
         MenuPage --> Menu : uses
         MenuPage --> Store : uses
         MenuItem --> Menu : uses
