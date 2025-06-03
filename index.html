@@ -1,6 +1,28 @@
 <!DOCTYPE html>
 <html>
 
+<head>
+    <style>
+        #save-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 1000;
+        }
+
+        #save-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
 <body>
     <div class="mermaid">
         classDiagram
@@ -295,8 +317,37 @@
         WithdrawBalance --> Withdrawal : creates
         WithdrawalDetail --> Withdrawal : shows
     </div>
+
+    <button id="save-btn">Save as Image</button>
+
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-    <script>mermaid.initialize({ startOnLoad: true });</script>
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+
+        document.getElementById('save-btn').addEventListener('click', function () {
+            // Find the mermaid diagram element
+            const mermaidElement = document.querySelector('.mermaid');
+
+            // Use html-to-image to capture the diagram
+            htmlToImage.toPng(mermaidElement, {
+                quality: 1,
+                pixelRatio: 2, // Higher resolution
+                backgroundColor: 'white'
+            })
+                .then(function (dataUrl) {
+                    // Create a download link
+                    const link = document.createElement('a');
+                    link.download = 'mermaid-diagram.png';
+                    link.href = dataUrl;
+                    link.click();
+                })
+                .catch(function (error) {
+                    console.error('Error saving image:', error);
+                    alert('Error saving image. Please try again.');
+                });
+        });
+    </script>
 </body>
 
 </html>
